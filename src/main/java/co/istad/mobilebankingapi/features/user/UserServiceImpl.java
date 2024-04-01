@@ -1,15 +1,19 @@
-package co.istad.mobilebankingapi.features;
+package co.istad.mobilebankingapi.features.user;
 
 
 import co.istad.mobilebankingapi.domain.Role;
 import co.istad.mobilebankingapi.domain.User;
-import co.istad.mobilebankingapi.features.dto.UserCreateRequest;
+import co.istad.mobilebankingapi.features.user.dto.UserCreateRequest;
+import co.istad.mobilebankingapi.features.user.dto.UserEditRequest;
+import co.istad.mobilebankingapi.features.user.dto.UserPasswordRequest;
 import co.istad.mobilebankingapi.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,63 +21,115 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl implements UserService{
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final UserMapper userMapper;
 
     @Override
-    public void createNew(UserCreateRequest userCreateRequest) {
+    public void createNew(UserCreateRequest request) {
+        User user = userMapper.fromUserCreateRequest(request);
 
-        if (userRepository.existsByPhoneNumber(userCreateRequest.phoneNumber())) {
+        if(userRepository.existsByNationalCardId(request.nationalCardId())){
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
-                    "Phone number has already been existed!"
+                    "National card id is already existed!"
             );
         }
 
-        if (userRepository.existsByNationalCardId(userCreateRequest.nationalCardId())) {
+        if(userRepository.existsByPhoneNumber(request.phoneNumber())){
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
-                    "National card ID has already been existed!"
+                    "Phone number is already existed!"
             );
         }
 
-        if (userRepository.existsByStudentIdCard(userCreateRequest.nationalCardId())) {
+        if(userRepository.existsByStudentIdCard(request.studentIdCard())){
             throw new ResponseStatusException(
-                    HttpStatus.CONFLICT,
-                    "Student card ID has already been existed!"
+                    HttpStatus.NOT_FOUND,
+                    "Student card id is already existed!"
             );
         }
 
-        if (!userCreateRequest.password()
-                .equals(userCreateRequest.confirmedPassword())) {
+        if(!request.password().equals(request.confirmedPassword())){
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
-                    "Password doesn't match!"
+                    "Password does not match"
             );
         }
 
-        // DTO pattern (mapstruct ft. lombok)
-        User user = userMapper.fromUserCreateRequest(userCreateRequest);
-        user.setUuid(UUID.randomUUID().toString());
+        // add role
+        List<Role> roleList = new ArrayList<>();
+        Role role = roleRepository.findByName("USER")
+                .orElseThrow(()-> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "User role does not exist!"
+                ));
+        // add role to roleList
+        roleList.add(role);
 
-        user.setProfileImage("avatar.png");
+        user.setUuid(UUID.randomUUID().toString());
+        user.setProfileImage("Avatar.png");
         user.setCreatedAt(LocalDateTime.now());
         user.setIsBlocked(false);
         user.setIsDeleted(false);
-
-        // Assign default user role
-        List<Role> roles = new ArrayList<>();
-        Role userRole = roleRepository.findByName("USER")
-                .orElseThrow(() ->
-                        new ResponseStatusException(HttpStatus.NOT_FOUND,
-                                "Role USER has not been found!"));
-        roles.add(userRole);
-        user.setRoles(roles);
+        user.setRoles(roleList);
 
         userRepository.save(user);
+    }
+
+    @Override
+    public void changeUserPassword(UserPasswordRequest userPasswordRequest) {
+
+        if(!userRepository.existsByName(userPasswordRequest.name())){
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "This user "+userPasswordRequest.name()+" is not exist!"
+            );
+        }
+
+        User user = userRepository.findByPassword(userPasswordRequest.oldPassword())
+                .orElseThrow(()-> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Password does not match!"
+                ));
+
+        if(!userPasswordRequest.NewPassword().equals(userPasswordRequest.confirmedNewPassword())){
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Password does not match!"
+            );
+        }
+
+        user.setPassword(userPasswordRequest.NewPassword());
+
+        userRepository.save(user);
+
+    }
+
+    @Override
+    public void editUserProfile(UserEditRequest userEditRequest , String uuid) {
+
+        User user = userRepository.findByUuid(uuid)
+                .orElseThrow(()-> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "User does not exist!"
+                ));
+
+        user.setCityOrProvince(userEditRequest.cityOrProvince());
+        user.setKhanOrDistrict(userEditRequest.khanOrDistrict());
+        user.setSangkatOrCommune(userEditRequest.sangkatOrCommune());
+        user.setVillage(userEditRequest.village());
+        user.setStreet(userEditRequest.street());
+        user.setEmployeeType(userEditRequest.employeeType());
+        user.setPosition(userEditRequest.position());
+        user.setCompanyName(userEditRequest.companyName());
+        user.setMainSourceOfIncome(userEditRequest.mainSourceOfIncome());
+        user.setMonthlyIncomeRange(userEditRequest.monthlyIncomeRange());
+
+        userRepository.save(user);
+
     }
 }
 

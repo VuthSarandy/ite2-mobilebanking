@@ -1,4 +1,4 @@
-package co.istad.mobilebankingapi.features.dto;
+package co.istad.mobilebankingapi.features.user.dto;
 
 import jakarta.validation.constraints.*;
 
@@ -25,19 +25,18 @@ public record UserCreateRequest(
         String name,
 
         @NotBlank
-        @Size(max = 6)
-        String gender,
-
-        @NotNull
-        LocalDate dob,
-
-        @NotBlank
         @Size(max = 20)
         String nationalCardId,
 
+        @NotBlank
+        @Size(max = 6)
+        String gender,
+
+        @NotBlank
         @Size(max = 20)
-        String studentIdCard
+        String studentIdCard,
+
+        @NotNull
+        LocalDate dob
 ) {
 }
-
-

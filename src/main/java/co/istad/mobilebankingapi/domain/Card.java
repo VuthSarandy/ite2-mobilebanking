@@ -1,7 +1,6 @@
 package co.istad.mobilebankingapi.domain;
 
 import jakarta.persistence.*;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -9,13 +8,15 @@ import lombok.Setter;
 import java.time.LocalDate;
 
 @NoArgsConstructor
-@Data
+@Getter
+@Setter
 @Entity
-@Table(name = "card")
+@Table(name = "cards")
 public class Card {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
     @Column(unique = true, nullable = false)
     private String number;
@@ -25,16 +26,16 @@ public class Card {
 
     private String holder;
 
-    private LocalDate issueDate;
-
+    private LocalDate issuedAt;
     private LocalDate expiredAt;
 
     private Boolean isDeleted;
 
-    @ManyToOne // many cardType to one card
+    @ManyToOne
     @JoinColumn(name = "type_id")
     private CardType cardType;
 
     @OneToOne(mappedBy = "card")
     private Account account;
+
 }

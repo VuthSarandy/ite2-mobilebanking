@@ -1,4 +1,4 @@
-package co.istad.mobilebankingapi.features.dto;
+package co.istad.mobilebankingapi.features.user.dto;
 
 public record UserDetailsResponse() {
 }

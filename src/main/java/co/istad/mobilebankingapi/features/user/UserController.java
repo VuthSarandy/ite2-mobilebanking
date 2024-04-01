@@ -1,24 +1,38 @@
-package co.istad.mobilebankingapi.features;
+package co.istad.mobilebankingapi.features.user;
 
-import co.istad.mobilebankingapi.features.dto.UserCreateRequest;
+
+import co.istad.mobilebankingapi.features.user.dto.UserCreateRequest;
+import co.istad.mobilebankingapi.features.user.dto.UserEditRequest;
+import co.istad.mobilebankingapi.features.user.dto.UserPasswordRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
+@RequestMapping("api/v1/users")
 public class UserController {
 
     private final UserService userService;
 
-    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
-    void createNew(@Valid @RequestBody UserCreateRequest userCreateRequest) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public void createNew(@Valid @RequestBody UserCreateRequest userCreateRequest){
         userService.createNew(userCreateRequest);
     }
 
+    @PutMapping("/password")
+    @ResponseStatus(HttpStatus.OK)
+    public void changePassword(@Valid @RequestBody UserPasswordRequest userPasswordRequest){
+        userService.changeUserPassword(userPasswordRequest);
+    }
+
+    @PatchMapping("/{uuid}")
+    @ResponseStatus(HttpStatus.OK)
+    public void editUserByUuid(@PathVariable String uuid, @RequestBody UserEditRequest userEditRequest){
+        userService.editUserProfile(userEditRequest,uuid);
+    }
 
 }
 

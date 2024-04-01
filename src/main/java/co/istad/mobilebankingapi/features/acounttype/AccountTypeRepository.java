@@ -1,4 +1,4 @@
-package co.istad.mobilebankingapi.features.user.acounttype;
+package co.istad.mobilebankingapi.features.acounttype;
 
 
 import co.istad.mobilebankingapi.domain.AccountType;

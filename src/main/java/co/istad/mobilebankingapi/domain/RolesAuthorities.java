@@ -1,22 +1,27 @@
 package co.istad.mobilebankingapi.domain;
 import jakarta.persistence.*;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @NoArgsConstructor
-@Data
+@Getter
+@Setter
 @Entity
-@Table(name = "roles_authorities")
+@Table(name = "authorities")
 public class RolesAuthorities {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    private Integer authorityId;
+    private String name;
 
-    @ManyToOne
-    private Role role;
+    @ManyToMany(mappedBy = "authorities")
+    private List<Role> roles;
 
 }
+
+
