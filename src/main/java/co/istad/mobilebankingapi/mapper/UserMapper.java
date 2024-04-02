@@ -4,19 +4,30 @@ package co.istad.mobilebankingapi.mapper;
 import co.istad.mobilebankingapi.domain.User;
 import co.istad.mobilebankingapi.features.user.dto.UserCreateRequest;
 import co.istad.mobilebankingapi.features.user.dto.UserDetailsResponse;
+import co.istad.mobilebankingapi.features.user.dto.UserEditRequest;
+import co.istad.mobilebankingapi.features.user.dto.UserResponse;
+import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
+
+import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface UserMapper {
 
-    // SourceType = UserCreateRequest (Parameter)
-    // TargetType = User (ReturnType)
-    User fromUserCreateRequest(UserCreateRequest userCreateRequest);
+    User fromUserCreateRequest(UserCreateRequest request);
 
-    void fromUserCreateRequest2(@MappingTarget User user, UserCreateRequest userCreateRequest);
+    //    void fromUserCreateRequest2(@MappingTarget User user, UserCreateRequest request);
+    UserDetailsResponse toUserDetailResponse(User user);
 
-    UserDetailsResponse toUserDetailsResponse(User user);
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void fromUserEditRequest(UserEditRequest userEditRequest, @MappingTarget User user);
 
+    UserResponse toUserResponse(User user);
+
+    List<UserResponse> toUserResponseList(List<User> userList);
 }
+
+
 

@@ -1,8 +1,10 @@
 package co.istad.mobilebankingapi.features.user.dto;
 
+import co.istad.mobilebankingapi.domain.Role;
 import jakarta.validation.constraints.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public record UserCreateRequest(
         @NotNull
@@ -37,6 +39,9 @@ public record UserCreateRequest(
         String studentIdCard,
 
         @NotNull
-        LocalDate dob
+        LocalDate dob,
+
+        @NotEmpty
+        List<Role> roles
 ) {
 }
