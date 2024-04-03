@@ -32,6 +32,5 @@ public interface UserService {
     Page<UserResponse> findList(int page, int limit);
 
     Page<UserResponse> findAllUser(int page, int size);
-    dy
 
 }
