@@ -78,6 +78,13 @@ public class UserController {
     public BasedMessage enableByUuid(@PathVariable String uuid){
         return userService.enableUserByUuid(uuid);
     }
+    @GetMapping
+    Page<UserResponse> findAllUser(
+            @RequestParam (required = false, defaultValue = "0") int page,
+            @RequestParam (required = false, defaultValue = "2") int size
+    ){
+        return userService.findAllUser(page, size);
+    }
 
 }
 

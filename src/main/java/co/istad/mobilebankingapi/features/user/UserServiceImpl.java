@@ -236,5 +236,12 @@ public Page<UserResponse> findList(int page, int limit) {
     return users.map(user -> userMapper.toUserResponse(user));
     }
 
+    @Override
+    public Page<UserResponse> findAllUser(int page, int size) {
+        PageRequest pageRequest = PageRequest.of(page , size);
+        Page<User> users = userRepository.findAll(pageRequest);
+        return users.map(userMapper::toUserResponse);
+    }
+
 }
 
