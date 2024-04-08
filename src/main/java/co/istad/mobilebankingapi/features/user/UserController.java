@@ -2,13 +2,13 @@ package co.istad.mobilebankingapi.features.user;
 
 
 
+
+import co.istad.mobilebankingapi.base.BaseResponse;
 import co.istad.mobilebankingapi.base.BasedMessage;
-import co.istad.mobilebankingapi.features.user.dto.UserCreateRequest;
-import co.istad.mobilebankingapi.features.user.dto.UserEditRequest;
-import co.istad.mobilebankingapi.features.user.dto.UserPasswordRequest;
-import co.istad.mobilebankingapi.features.user.dto.UserResponse;
+import co.istad.mobilebankingapi.features.user.dto.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +18,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("api/v1/users")
+@Slf4j
 public class UserController {
 
     private final UserService userService;
@@ -40,9 +41,15 @@ public class UserController {
         userService.editUserProfile(userEditRequest,uuid);
     }
 
+    @GetMapping("/detail")
+    @ResponseStatus(HttpStatus.OK)
+    public List<UserDetailsResponse> findAll(){
+        return userService.findAll();
+    }
+
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public Page<UserResponse> findAll(
+    public Page<UserResponse> findList(
             @RequestParam(required = false, defaultValue = "0") int page,
             @RequestParam(required = false, defaultValue = "2") int limit
     ){
@@ -78,13 +85,18 @@ public class UserController {
     public BasedMessage enableByUuid(@PathVariable String uuid){
         return userService.enableUserByUuid(uuid);
     }
-    @GetMapping
-    Page<UserResponse> findAllUser(
-            @RequestParam (required = false, defaultValue = "0") int page,
-            @RequestParam (required = false, defaultValue = "2") int size
-    ){
-        return userService.findAllUser(page, size);
+
+    @PutMapping("/{uuid}/profile-image")
+    public BaseResponse<?> updateProfileImage(@PathVariable String uuid,
+                                              @RequestBody @Valid UserProfileImageRequest userProfileImageRequest){
+
+        String newProfileImageUri = userService.updateProfileImage(uuid, userProfileImageRequest.mediaName());
+        log.info("image url {}",newProfileImageUri);
+
+
+        return BaseResponse.builder()
+                .payload(newProfileImageUri)
+                .build();
     }
 
 }
-

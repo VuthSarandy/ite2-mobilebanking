@@ -1,5 +1,8 @@
 package co.istad.mobilebankingapi.exception;
 
+
+import co.istad.mobilebankingapi.base.BaseError;
+import co.istad.mobilebankingapi.base.BaseErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -13,22 +16,26 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class ValidationException {
-
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, Object> handleValidationErrors(MethodArgumentNotValidException ex) {
+    public BaseErrorResponse handleValidationError(MethodArgumentNotValidException ex){
 
-        List<Map<String, Object>> errors = new ArrayList<>();
+        BaseError<List<?>> baseError = new BaseError<>();
 
-        ex.getBindingResult().getFieldErrors()
+        List<Map<String, Object>> errorList = new ArrayList<>();
+
+        ex.getFieldErrors().stream()
                 .forEach(fieldError -> {
                     Map<String, Object> error = new HashMap<>();
-                    error.put("field", fieldError.getField());
-                    error.put("reason", fieldError.getDefaultMessage());
-                    errors.add(error);
+                    error.put("field",fieldError.getField());
+                    error.put("message",fieldError.getDefaultMessage());
+                    errorList.add(error);
                 });
 
-        return Map.of("errors", errors);
-    }
 
+        baseError.setCode(HttpStatus.BAD_REQUEST.getReasonPhrase());
+        baseError.setDescription(errorList);
+
+        return new BaseErrorResponse(baseError);
+    }
 }

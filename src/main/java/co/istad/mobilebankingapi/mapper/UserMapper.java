@@ -25,8 +25,8 @@ public interface UserMapper {
     void fromUserEditRequest(UserEditRequest userEditRequest, @MappingTarget User user);
 
     UserResponse toUserResponse(User user);
+    List<UserDetailsResponse> toUserDetailResponseList(List<User> users);
 
-    List<UserResponse> toUserResponseList(List<User> userList);
 }
 
 

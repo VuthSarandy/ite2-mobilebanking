@@ -2,10 +2,7 @@ package co.istad.mobilebankingapi.features.user;
 
 
 import co.istad.mobilebankingapi.base.BasedMessage;
-import co.istad.mobilebankingapi.features.user.dto.UserCreateRequest;
-import co.istad.mobilebankingapi.features.user.dto.UserEditRequest;
-import co.istad.mobilebankingapi.features.user.dto.UserPasswordRequest;
-import co.istad.mobilebankingapi.features.user.dto.UserResponse;
+import co.istad.mobilebankingapi.features.user.dto.*;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
@@ -17,7 +14,7 @@ public interface UserService {
 
     UserResponse editUserProfile(UserEditRequest userEditRequest, String uuid);
 
-    List<UserResponse> findAll();
+    List<UserDetailsResponse> findAll();
 
     UserResponse findByUuid(String uuid);
 
@@ -32,5 +29,6 @@ public interface UserService {
     Page<UserResponse> findList(int page, int limit);
 
     Page<UserResponse> findAllUser(int page, int size);
+    String updateProfileImage(String uuid,String mediaName);
 
 }

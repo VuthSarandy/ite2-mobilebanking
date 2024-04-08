@@ -10,35 +10,42 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/medias")
 @RequiredArgsConstructor
+@RequestMapping("/api/v1/medias")
 public class MediaController {
+
     private final MediaService mediaService;
 
-    @PostMapping("upload-single")
-    MediaResponse uploadSingle(@RequestPart MultipartFile file){
-        return mediaService.uploadSingle(file, "image");
-    }
+    @PostMapping("/upload-single")
     @ResponseStatus(HttpStatus.CREATED)
-    @PostMapping("/upload-multiple")
-    List<MediaResponse> uploadMultiple(@RequestPart List<MultipartFile> files ){
-        return mediaService.uploadMultiple(files,"image");
+    MediaResponse uploadSingle(@RequestPart MultipartFile file){
+        return mediaService.uploadSingle(file, "IMAGE");
     }
+
+    @PostMapping("/upload-multiple")
+    @ResponseStatus(HttpStatus.CREATED)
+    List<MediaResponse> uploadMultiple(@RequestPart List<MultipartFile> files){
+        return mediaService.uploadMultiple(files, "IMAGE");
+    }
+
     @GetMapping("/{mediaName}")
-    public MediaResponse loadMediaByName(@PathVariable String mediaName){
-        return mediaService.loadMediaByName(mediaName,"image");
+    MediaResponse loadMediaByName(@PathVariable String mediaName){
+        return mediaService.loadMediaByName(mediaName,"IMAGE");
     }
 
     @DeleteMapping("/{mediaName}")
     MediaResponse deleteMediaByName(@PathVariable String mediaName){
-        return mediaService.deleteMediaByName(mediaName, "image");
+        return mediaService.deleteByName(mediaName,"IMAGE");
     }
-    @GetMapping
-    List<MediaResponse> findAllMedia(){
-        return mediaService.getAllMedia("image");
+
+    @GetMapping()
+    List<MediaResponse> loadMedia(){
+        return mediaService.loadMedias("IMAGE");
     }
+
     @GetMapping("/download/{name}")
     ResponseEntity downloadByName (@PathVariable String name) {
-        return mediaService.downloadMediaByName(name , "image");
+        return mediaService.downloadMediaByName(name , "IMAGE");
     }
+
 }

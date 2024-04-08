@@ -5,12 +5,12 @@ import lombok.Builder;
 
 @Builder
 public record MediaResponse(
-        String name, // Unique
-        String contentType, // PNG, JPG, SVG, ...
-        String extension,
-        String uri, // Link to access
-        @JsonInclude(JsonInclude.Include.NON_NULL)
-        Long size
+        String name,
+        String contentType,// PNG, JPG, ...
+        String uri,
+        @JsonInclude(JsonInclude.Include.NON_NULL) // if size is null not response to user
+        Long size, // link access to the image
+        String extension
 
 ) {
 }

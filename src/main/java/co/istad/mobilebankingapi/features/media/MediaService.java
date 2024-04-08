@@ -7,11 +7,16 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 public interface MediaService {
-    MediaResponse uploadSingle(MultipartFile file , String folderName);
+
+    MediaResponse uploadSingle(MultipartFile file, String folderName);
+
     List<MediaResponse> uploadMultiple(List<MultipartFile> files, String folderName);
-    MediaResponse loadMediaByName(String mediaName, String folderName);
-    MediaResponse deleteMediaByName(String mediaName, String folderName);
-    List<MediaResponse> getAllMedia(String folderName);
+
+    MediaResponse loadMediaByName(String name, String folderName);
+
+    MediaResponse deleteByName(String name, String folderName);
+
+    List<MediaResponse> loadMedias(String folderName);
 
     ResponseEntity downloadMediaByName(String mediaName, String folderName);
 
