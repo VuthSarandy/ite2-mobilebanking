@@ -11,7 +11,7 @@ public record AccountResponse(
         String actName,
         BigDecimal balance,
         BigDecimal transferLimit,
-        AccountTypeResponse accountTypeResponse,
-        UserDetailsResponse userDetailsResponse
+        AccountTypeResponse accountType,
+        UserDetailsResponse user
 ) {
 }

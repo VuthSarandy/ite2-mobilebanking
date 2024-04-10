@@ -21,7 +21,7 @@ public class UserAccount {
     @ManyToOne
     private User user;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     private Account account;
 
     private Boolean isDeleted; // manage delete status (admin want to disable or remove an account)

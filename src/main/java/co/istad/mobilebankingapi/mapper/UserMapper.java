@@ -2,14 +2,12 @@ package co.istad.mobilebankingapi.mapper;
 
 
 import co.istad.mobilebankingapi.domain.User;
+import co.istad.mobilebankingapi.domain.UserAccount;
 import co.istad.mobilebankingapi.features.user.dto.UserCreateRequest;
 import co.istad.mobilebankingapi.features.user.dto.UserDetailsResponse;
 import co.istad.mobilebankingapi.features.user.dto.UserEditRequest;
 import co.istad.mobilebankingapi.features.user.dto.UserResponse;
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.MappingTarget;
-import org.mapstruct.NullValuePropertyMappingStrategy;
+import org.mapstruct.*;
 
 import java.util.List;
 
@@ -26,6 +24,10 @@ public interface UserMapper {
 
     UserResponse toUserResponse(User user);
     List<UserDetailsResponse> toUserDetailResponseList(List<User> users);
+    @Named("mapUserDetailResponse")
+    default UserDetailsResponse mapUserDetailResponse(List<UserAccount> userAccountList){
+        return toUserDetailResponse(userAccountList.get(0).getUser());
+    }
 
 }
 
