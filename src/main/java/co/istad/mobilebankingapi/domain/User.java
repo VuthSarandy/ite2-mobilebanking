@@ -83,7 +83,7 @@ public class User {
     @OneToMany(mappedBy = "user")
     private List<UserAccount> userAccountList;
 
-    @ManyToMany(cascade = CascadeType.ALL)
+    @ManyToMany(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
     @JoinTable(name = "users_roles",
             joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
@@ -91,6 +91,9 @@ public class User {
 
     private Boolean isDeleted; // manage delete status (admin want to disable or remove an account)
     private Boolean isBlocked; // manage block status (when there is bad action happened)
+    private Boolean isAccountNonExpired;
+    private Boolean isAccountNonLocked;
+    private Boolean isCredentialsNonExpired;
 
     private LocalDateTime createdAt;
 }
