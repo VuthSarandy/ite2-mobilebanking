@@ -12,18 +12,26 @@ import org.springframework.mail.javamail.MimeMailMessage;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 @Slf4j
 @RequiredArgsConstructor
 @Service
 public class MailServiceImpl implements MailService {
     private final JavaMailSender javaMailSender;
+    private final TemplateEngine templateEngine;
     @Override
     public MailResponse send(MailRequest mailRequest) {
 
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
 
         MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage);
+
+        Context context = new Context();
+        context.setVariable("name","sarandy");
+        String html = templateEngine.process("/mail/sample-mail",context);
+
         try {
             mimeMessageHelper.setTo(mailRequest.to());
             mimeMessageHelper.setSubject(mailRequest.subject());
