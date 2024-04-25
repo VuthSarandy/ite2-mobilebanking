@@ -68,11 +68,11 @@ public class UserServiceImpl implements UserService{
 
         // set default role USER when create user
         List<Role> roleList = new ArrayList<>();
-        Role role = roleRepository.findByName("USER")
-                .orElseThrow(()-> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "User role does not exist!"
-                ));
+//        Role role = roleRepository.findByName("USER")
+//                .orElseThrow(()-> new ResponseStatusException(
+//                        HttpStatus.NOT_FOUND,
+//                        "User role does not exist!"
+//                ));
 
         // set dynamic roles when create user
         request.roles()
@@ -86,7 +86,7 @@ public class UserServiceImpl implements UserService{
                 });
 
         // add role to roleList
-        roleList.add(role);
+//        roleList.add(role);
 
         user.setUuid(UUID.randomUUID().toString());
         user.setProfileImage("Avatar.png");

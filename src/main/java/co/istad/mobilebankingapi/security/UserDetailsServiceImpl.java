@@ -20,7 +20,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
         User user = userRepository.findByPhoneNumber(username);
 
-        CustomUserDetail customUserDetail = new CustomUserDetail();
+        CustomUserDetails customUserDetail = new CustomUserDetails();
         customUserDetail.setUser(user);
 
         return customUserDetail;

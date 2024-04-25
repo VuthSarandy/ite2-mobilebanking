@@ -51,7 +51,7 @@ public class UserController {
     @ResponseStatus(HttpStatus.OK)
     public Page<UserResponse> findList(
             @RequestParam(required = false, defaultValue = "0") int page,
-            @RequestParam(required = false, defaultValue = "2") int limit
+            @RequestParam(required = false, defaultValue = "10") int limit
     ){
         return userService.findList(page,limit);
     }

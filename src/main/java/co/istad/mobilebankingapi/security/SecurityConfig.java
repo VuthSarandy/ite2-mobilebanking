@@ -1,28 +1,56 @@
 package co.istad.mobilebankingapi.security;
 
+import co.istad.mobilebankingapi.util.KeyUtil;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.RSAKey;
+import com.nimbusds.jose.jwk.source.JWKSource;
+import com.nimbusds.jose.proc.SecurityContext;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
 import org.springframework.security.web.SecurityFilterChain;
+import java.util.UUID;
 
 @Configuration
-@EnableWebSecurity //disable default spring security configuration
+@EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
     private final PasswordEncoder passwordEncoder;
     private final UserDetailsService userDetailsService;
+    private final KeyUtil keyUtil;
+
+
+    @Bean
+    JwtAuthenticationProvider jwtAuthenticationProvider(@Qualifier("refreshJwtDecoder") JwtDecoder refreshJwtDecoder) {
+        JwtAuthenticationProvider provider = new JwtAuthenticationProvider(refreshJwtDecoder);
+        return provider;
+    }
+
+    @Bean
+    DaoAuthenticationProvider daoAuthenticationProvider() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(userDetailsService);
+        provider.setPasswordEncoder(passwordEncoder);
+
+        return provider;
+    }
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
@@ -30,61 +58,83 @@ public class SecurityConfig {
         // TODO: your security logic
         httpSecurity
                 .authorizeHttpRequests(request -> request
-                        .requestMatchers(HttpMethod.POST, "api/v1/users/**").permitAll()
-                        .requestMatchers(HttpMethod.PUT, "api/v1/users/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "api/v1/users/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "api/v1/users/**").hasAnyRole("ADMIN", "STAFF")
-
+                        .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/users/**").permitAll()
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/users/**").hasAuthority("SCOPE_user:write")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/users/**").hasAuthority("SCOPE_user:write")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/users/**").hasAuthority("SCOPE_user:read")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/accounts/**").hasAuthority("SCOPE_account:write")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/accounts/**").hasAuthority("SCOPE_account:write")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/accounts/**").hasAuthority("SCOPE_account:write")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/accounts/**").hasAnyAuthority("SCOPE_ROLE_ADMIN", "SCOPE_account:read")
                         .anyRequest()
-                        .authenticated());
-        // Enable spring security configuration of enable form basic username password
-        httpSecurity.httpBasic(Customizer.withDefaults());
+                        .authenticated()
+                );
 
-        // disable csrf for submit form because we develop api
+        // security mechanism
+        //httpSecurity.httpBasic(Customizer.withDefaults());
+        httpSecurity.oauth2ResourceServer(jwt -> jwt
+                .jwt(Customizer.withDefaults()));
+
+        // Disable CSRF
         httpSecurity.csrf(token -> token.disable());
-
-        // change from stateful to stateless because api use stateless
+        // Change to STATELESS
         httpSecurity.sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         return httpSecurity.build();
     }
 
-    // create provider for access user and password from database
+    @Primary
     @Bean
-    DaoAuthenticationProvider daoAuthenticationProvider(){
-
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-
-        provider.setUserDetailsService(userDetailsService);
-        provider.setPasswordEncoder(passwordEncoder);
-
-        return provider;
-
+    JWKSource<SecurityContext> jwkSource() {
+        RSAKey rsaKey = new RSAKey.Builder(keyUtil.getAccessTokenPublicKey())
+                .privateKey(keyUtil.getAccessTokenPrivateKey())
+                .keyID(UUID.randomUUID().toString())
+                .build();
+        JWKSet jwkSet = new JWKSet(rsaKey);
+        return (jwkSelector, securityContext) -> jwkSelector
+                .select(jwkSet);
     }
 
+    @Primary
+    @Bean
+    JwtEncoder jwtEncoder(JWKSource<SecurityContext> jwkSource) {
+        return new NimbusJwtEncoder(jwkSource);
+    }
 
+    @Primary
+    @Bean
+    JwtDecoder jwtDecoder() throws JOSEException {
+        return NimbusJwtDecoder
+                .withPublicKey(keyUtil.getAccessTokenPublicKey())
+                .build();
+    }
 
-//    @Bean
-//    InMemoryUserDetailsManager inMemoryUserDetailsManager() {
-//        InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
-//
-//        UserDetails userDetails = User.builder()
-//                .username("admin")
-//                .password(passwordEncoder.encode("123"))
-//                .roles("USER", "ADMIN")
-//                .build();
-//
-//        UserDetails userEditor = User.builder()
-//                .username("staff")
-//                .password(passwordEncoder.encode("123"))
-//                .roles("USER", "STAFF")
-//                .build();
-//
-//        manager.createUser(userDetails);
-//        manager.createUser(userEditor);
-//
-//        return manager;
-//    }
+    // JWT REFRESH TOKEN =====================================
+
+    @Bean("refreshJwkSource")
+    JWKSource<SecurityContext> refreshJwkSource() {
+        RSAKey rsaKey = new RSAKey.Builder(keyUtil.getRefreshTokenPublicKey())
+                .privateKey(keyUtil.getRefreshTokenPrivateKey())
+                .keyID(UUID.randomUUID().toString())
+                .build();
+        JWKSet jwkSet = new JWKSet(rsaKey);
+        return (jwkSelector, securityContext) -> jwkSelector
+                .select(jwkSet);
+    }
+
+    @Bean("refreshJwtEncoder")
+    JwtEncoder refreshJwtEncoder(@Qualifier("refreshJwkSource") JWKSource<SecurityContext> jwkSource) {
+        return new NimbusJwtEncoder(jwkSource);
+    }
+
+    @Bean("refreshJwtDecoder")
+    JwtDecoder refreshJwtDecoder() throws JOSEException {
+        return NimbusJwtDecoder
+                .withPublicKey(keyUtil.getRefreshTokenPublicKey())
+                .build();
+    }
 
 }
+
